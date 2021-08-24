@@ -34,12 +34,13 @@ const config = {
     googlePrivateKey: requireProcessEnv("GOOGLE_PRIVATE_KEY"),
     googleSheetId: requireProcessEnv("GOOGLE_SHEET_ID"),
     authAudience: requireProcessEnv("AUTH0_AUDIENCE"),
-    authDomain: requireProcessEnv("AUTH0_DOMAIN")
+    authDomain: requireProcessEnv("AUTH0_DOMAIN"),
+    dateFormat: "YYYY-MM-DD",
   },
   production: {
     ip: process.env.IP || undefined,
-    port: process.env.PORT || 8080
-  }
+    port: process.env.PORT || 8080,
+  },
 };
 
 module.exports = merge(config.all, config[config.all.env]);

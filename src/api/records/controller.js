@@ -1,4 +1,8 @@
 const dayjs = require("dayjs");
+const RECORDS_SHEET_ID = "1295926321";
+var utc = require("dayjs/plugin/utc");
+const { dateFormat } = require("../../config");
+dayjs.extend(utc);
 
 async function create(req, res) {
   const { googleDoc, body } = req;
@@ -11,10 +15,7 @@ async function create(req, res) {
     account,
     formatedDate,
   } = req.body;
-  console.log(
-    "🚀 ~ file: controller.js ~ line 14 ~ create ~ req.body",
-    req.body
-  );
+
   const requiredProperties = [
     "record",
     "amount",
@@ -33,12 +34,11 @@ async function create(req, res) {
   if (isNaN(amount)) {
     return res.status(400).json({ error: `amount is not a number` });
   }
-  const date = dayjs(formatedDate, "YYYY-MM-DD");
+  const date = dayjs(formatedDate, dateFormat);
   if (!date.isValid()) {
     return res.status(400).json({ error: `formatedDate is not a valid date` });
   }
 
-  const RECORDS_SHEET_ID = "1295926321";
   const sheet = googleDoc.sheetsById[RECORDS_SHEET_ID];
   const response = await sheet
     .addRow({
@@ -49,7 +49,7 @@ async function create(req, res) {
       label,
       account,
       formated_date: `=FECHA(${date.format("YYYY,M,D")})`,
-      date: date.format("YYYY-MM-DD"),
+      date: date.format(dateFormat),
     })
     .catch((e) => {
       console.log("🚀 ~ file: controller.js ~ line 52 ~ create ~ e", e);
@@ -70,6 +70,48 @@ async function create(req, res) {
   });
 }
 
+async function index(req, res) {
+  const { googleDoc } = req;
+  const body = req.body;
+  const limit = parseInt(body.limit, 10) || 10;
+  const page = parseInt(body.page, 10) || 1;
+
+  const sheet = googleDoc.sheetsById[RECORDS_SHEET_ID];
+
+  const rows = await sheet.getRows().catch((e) => {
+    return res
+      .status(500)
+      .json({ error: "Error getting rows", message: e.message });
+  });
+
+  const fullResponse = rows.map((row) => ({
+    record: row.record,
+    amount: row.amount,
+    category: row.category,
+    subcategory: row.subcategory,
+    label: row.label,
+    account: row.account,
+    date: dayjs.utc(row.date, dateFormat),
+  }));
+  const rowsLength = fullResponse.length;
+  const numberOfPages = Math.ceil(rowsLength / limit);
+  if (page > numberOfPages) {
+    return res.status(200).json({
+      count: rowsLength,
+      data: [],
+    });
+  }
+  const offset = page * limit;
+  const from = rowsLength - offset;
+  const to = from + limit;
+  const response = fullResponse.slice(from > 0 ? from : 0, to);
+  return res.status(200).json({
+    count: rowsLength,
+    data: response,
+  });
+}
+
 module.exports = {
   create,
+  index,
 };
