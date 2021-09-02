@@ -72,9 +72,9 @@ async function create(req, res) {
 
 async function index(req, res) {
   const { googleDoc } = req;
-  const body = req.body;
-  const limit = parseInt(body.limit, 10) || 10;
-  const page = parseInt(body.page, 10) || 1;
+  const query = req.query;
+  const limit = parseInt(query.limit, 10) || 10;
+  const page = parseInt(query.page, 10) || 1;
 
   const sheet = googleDoc.sheetsById[RECORDS_SHEET_ID];
 
@@ -85,7 +85,7 @@ async function index(req, res) {
   });
 
   const fullResponse = rows.map((row) => ({
-    record: row.record,
+    name: row.record,
     amount: row.amount,
     category: row.category,
     subcategory: row.subcategory,
