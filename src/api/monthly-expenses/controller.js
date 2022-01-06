@@ -18,6 +18,8 @@ async function index(req, res) {
     name: row.name,
     amount: row.amount ? parseFloat(row.amount) : null,
     date: row.date ? dayjs.utc(row.date, dateFormat) : null,
+    paid: row.amount && row.date,
+    category: row.category,
   }));
   return res.status(200).json(response);
 }

@@ -35,28 +35,27 @@ async function create(req, res) {
     return res.status(400).json({ error: `amount is not a number` });
   }
   const date = dayjs(formatedDate, dateFormat);
+
   if (!date.isValid()) {
     return res.status(400).json({ error: `formatedDate is not a valid date` });
   }
 
   const sheet = googleDoc.sheetsById[RECORDS_SHEET_ID];
-  const response = await sheet
-    .addRow({
-      record,
-      amount,
-      category,
-      subcategory,
-      label,
-      account,
-      formated_date: `=FECHA(${date.format("YYYY,M,D")})`,
-      date: date.format(dateFormat),
-    })
-    .catch((e) => {
-      console.log("🚀 ~ file: controller.js ~ line 52 ~ create ~ e", e);
-      return res
-        .status(500)
-        .json({ error: "Error creating row", message: e.message });
-    });
+  const row = {
+    record,
+    amount,
+    category,
+    subcategory,
+    label,
+    account,
+    formated_date: `=FECHA(${date.format("YYYY,M,D")})`,
+    date: date.format(dateFormat),
+  };
+  const response = await sheet.addRow(row).catch((e) => {
+    return res
+      .status(500)
+      .json({ error: "Error creating row", message: e.message });
+  });
 
   return res.status(201).json({
     record: response.record,
