@@ -2,6 +2,7 @@ const dayjs = require("dayjs");
 const RECORDS_SHEET_ID = "1295926321";
 var utc = require("dayjs/plugin/utc");
 const { dateFormat } = require("../../config");
+const { getSubCategoryNameForTransfer } = require("./utils/category");
 dayjs.extend(utc);
 
 async function create(req, res) {
@@ -69,6 +70,94 @@ async function create(req, res) {
   });
 }
 
+async function createTransfer(req, res) {
+  const { googleDoc, body } = req;
+  const {
+    record,
+    amount,
+    label,
+    fromAccount,
+    toAccount,
+    formatedDate,
+  } = req.body;
+
+  const requiredProperties = [
+    "record",
+    "amount",
+    "fromAccount",
+    "fromAccount",
+    "toAccount",
+    "formatedDate",
+  ];
+  /* :: FIELD VALIDATIONS */
+  requiredProperties.forEach((property) => {
+    const value = body[property];
+    if (!value) {
+      return res.status(400).json({ error: `${property} is required` });
+    }
+  });
+  if (isNaN(amount)) {
+    return res.status(400).json({ error: `amount is not a number` });
+  }
+  const date = dayjs(formatedDate, dateFormat);
+  if (!date.isValid()) {
+    return res.status(400).json({ error: `formatedDate is not a valid date` });
+  }
+
+  const sheet = googleDoc.sheetsById[RECORDS_SHEET_ID];
+  const category = "Transferencia";
+
+  const fromRecordSubcategory = getSubCategoryNameForTransfer({
+    account: toAccount,
+    type: "to",
+  });
+  const dateFormula = `=FECHA(${date.format("YYYY,M,D")})`;
+
+  const fromRecord = {
+    record,
+    amount: -amount,
+    category,
+    account: fromAccount,
+    subcategory: fromRecordSubcategory,
+    label,
+    formated_date: dateFormula,
+    date: date.format(dateFormat),
+  };
+
+  const toRecordSubcategory = getSubCategoryNameForTransfer({
+    account: fromAccount,
+    type: "from",
+  });
+  const toRecord = {
+    record,
+    amount,
+    category,
+    account: toAccount,
+    subcategory: toRecordSubcategory,
+    label,
+    formated_date: dateFormula,
+    date: date.format(dateFormat),
+  };
+
+  return sheet
+    .addRows([fromRecord, toRecord])
+    .then(() => {
+      return res.status(201).json({
+        record,
+        amount,
+        label,
+        fromAccount,
+        toAccount,
+        formatedDate,
+      });
+    })
+    .catch((e) => {
+      return res
+        .status(500)
+        .json({ error: "Error creating row", message: e.message });
+    });
+}
+
 async function index(req, res) {
   const { googleDoc } = req;
   const query = req.query;
@@ -113,4 +202,5 @@ async function index(req, res) {
 module.exports = {
   create,
   index,
+  createTransfer,
 };
