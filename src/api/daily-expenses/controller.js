@@ -14,11 +14,11 @@ async function index(req, res) {
   });
 
   const response = rows.map((row) => ({
-    dailyBudget: row.daily_budget ? parseFloat(row.daily_expenses) : null,
+    dailyBudget: row.daily_budget ? parseFloat(row.daily_budget) : null,
     dailyExpenses: row.daily_expenses ? parseFloat(row.daily_expenses) : null,
     remaining: row.remaining ? parseFloat(row.remaining) : null,
   }));
-  return res.status(200).json(response);
+  return res.status(200).json(response[0]);
 }
 
 module.exports = {
