@@ -4,7 +4,7 @@ const { useGoogleSpreadsheet } = require('../../services/google-sheets')
 const router = new Router()
 
 router.post('/', useGoogleSpreadsheet, create)
-router.post('/transfer', useGoogleSpreadsheet, createTransfer)
+router.post('/transfers', useGoogleSpreadsheet, createTransfer)
 router.get("/", useGoogleSpreadsheet, index);
 
 

@@ -72,6 +72,7 @@ async function create(req, res) {
 
 async function createTransfer(req, res) {
   const { googleDoc, body } = req;
+
   const {
     record,
     amount,
@@ -84,7 +85,6 @@ async function createTransfer(req, res) {
   const requiredProperties = [
     "record",
     "amount",
-    "fromAccount",
     "fromAccount",
     "toAccount",
     "formatedDate",
