@@ -7,7 +7,10 @@ async function index(req, res) {
   const { googleDoc } = req;
   const SHEET_ID = 2114383562;
   const sheet = googleDoc.sheetsById[SHEET_ID];
-  const rows = await sheet.getRows().catch((e) => {
+  if (!sheet) {
+    return res.status(404).json({ error: "Sheet not found" });
+  }
+  const rows = await sheet?.getRows().catch((e) => {
     return res
       .status(500)
       .json({ error: "Error getting rows", message: e.message });

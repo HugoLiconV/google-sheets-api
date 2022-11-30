@@ -22,6 +22,7 @@ function getSubCategoryNameForTransfer({ account, type }) {
     "Banorte Débito",
     "HSBC 2Now",
     "Banamex Priority",
+    "Hey Banco Crédito"
   ];
   if (type !== "from" && type !== "to") {
     throw new Error('type must be either "from" or "to"');
