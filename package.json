@@ -22,7 +22,8 @@
     "googleapis": "^39.2.0",
     "jwks-rsa": "^2.0.3",
     "lodash.merge": "^4.6.2",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "redis": "^4.6.7"
   },
   "devDependencies": {
     "dotenv-safe": "^8.2.0",

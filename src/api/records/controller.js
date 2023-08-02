@@ -3,6 +3,9 @@ const RECORDS_SHEET_ID = "1295926321";
 var utc = require("dayjs/plugin/utc");
 const { dateFormat } = require("../../config");
 const { getSubCategoryNameForTransfer } = require("./utils/category");
+const redisClient = require("../../services/redis");
+const { performance } = require("perf_hooks");
+
 dayjs.extend(utc);
 
 async function create(req, res) {
@@ -58,16 +61,17 @@ async function create(req, res) {
       .json({ error: "Error creating row", message: e.message });
   });
 
-  return res.status(201).json({
-    record: response.record,
+  const createdRecord = {
+    name: response.record,
     amount: response.amount,
     category: response.category,
     subcategory: response.subcategory,
     label: response.label,
     account: response.account,
-    formatedDate: response.formated_date,
     date: response.date,
-  });
+  };
+  await storeRecordInRedis(createdRecord);
+  return res.status(201).json(createdRecord);
 }
 
 async function createTransfer(req, res) {
@@ -199,8 +203,80 @@ async function index(req, res) {
   });
 }
 
+async function autoComplete(req, res) {
+  const { googleDoc, query } = req;
+  const limit = parseInt(query.limit, 10) || 10;
+  const startTime = performance.now();
+  const redisResult = await redisClient.ft
+    .search("idx:record", `@name:${query.name}`, {
+      LIMIT: {
+        from: 0,
+        size: 10,
+      },
+    })
+    .catch((err) => console.log(err));
+  const endTime = performance.now();
+  console.log(
+    "Time taken by redis search:",
+    endTime - startTime,
+    "milliseconds"
+  );
+
+  const hasCachedResults = redisResult?.total > 0;
+  if (hasCachedResults) {
+    const formatedRecords = redisResult.documents.map((record) => ({
+      ...record.value,
+    }));
+
+    return res.status(200).json({
+      count: redisResult.total,
+      data: formatedRecords,
+    });
+  } else {
+    // fetch all records and store them in Redis
+    const sheet = googleDoc.sheetsById[RECORDS_SHEET_ID];
+    const rows = await sheet.getRows().catch((e) => {
+      return res
+        .status(500)
+        .json({ error: "Error getting rows", message: e.message });
+    });
+    const records = rows
+      .map((row) => ({
+        name: row.record,
+        amount: row.amount,
+        category: row.category,
+        subcategory: row.subcategory,
+        label: row.label,
+        account: row.account,
+        date: dayjs.utc(row.date, dateFormat),
+      }))
+      .filter((record) => record.category !== "Transferencia");
+    const startTime = performance.now();
+    await Promise.all(records.map(storeRecordInRedis));
+    const endTime = performance.now();
+    console.log(
+      "Time taken by redis set:",
+      endTime - startTime,
+      "milliseconds"
+    );
+
+    const limitedRecords = records.slice(0, limit);
+    return res.status(200).json({
+      count: limitedRecords.length,
+      data: limitedRecords,
+    });
+  }
+}
+
+function storeRecordInRedis(record) {
+  // eslint-disable-next-line no-unused-vars
+  const { date, ...rest } = record;
+  redisClient.json.set(`record:${record.name}`, "$", rest);
+}
+
 module.exports = {
   create,
   index,
   createTransfer,
+  autoComplete,
 };

@@ -6,7 +6,7 @@ require("dayjs/locale/es");
 dayjs.locale("es"); // use loaded locale globally
 
 /* istanbul ignore next */
-const requireProcessEnv = name => {
+const requireProcessEnv = (name) => {
   if (!process.env[name]) {
     throw new Error("You must set the " + name + " environment variable");
   }
@@ -18,7 +18,7 @@ if (process.env.NODE_ENV !== "production") {
   const dotenv = require("dotenv-safe");
   dotenv.config({
     path: path.join(__dirname, "../.env"),
-    sample: path.join(__dirname, "../.env.example")
+    sample: path.join(__dirname, "../.env.example"),
   });
 }
 
@@ -36,6 +36,9 @@ const config = {
     authAudience: requireProcessEnv("AUTH0_AUDIENCE"),
     authDomain: requireProcessEnv("AUTH0_DOMAIN"),
     dateFormat: "YYYY-MM-DD",
+    redisPassword: process.env.REDIS_PASSWORD,
+    redisHost: requireProcessEnv("REDIS_HOST"),
+    redisPort: requireProcessEnv("REDIS_PORT"),
   },
   production: {
     ip: process.env.IP || undefined,

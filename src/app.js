@@ -1,6 +1,7 @@
 const { env, port, ip, apiRoot, } = require('./config')
 const express = require('./services/express')
 const api = require('./api')
+require('./services/redis')
 
 const app = express(apiRoot, api)
 
