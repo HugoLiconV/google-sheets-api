@@ -25,6 +25,8 @@ function getSubCategoryNameForTransfer({ account, type }) {
     "Hey Banco Crédito",
     "Fintual",
     "Nu Bank Débito",
+    "Plata Crédito",
+    "Invex Volaris",
   ];
   if (type !== "from" && type !== "to") {
     throw new Error('type must be either "from" or "to"');
