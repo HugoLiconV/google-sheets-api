@@ -6,34 +6,11 @@
  * @returns {string}
  *
  * @throws {Error} if the type is not 'from' or 'to'
- * @throws {Error} if the account is not one of the expected values
  *
  */
 function getSubCategoryNameForTransfer({ account, type }) {
-  const accountNames = [
-    "Cetes",
-    "Mis Metas",
-    "Nómina",
-    "Efectivo",
-    "Tarjeta Nu",
-    "Banamex Oro",
-    "Banamex Costco",
-    "Banorte Oro",
-    "Banorte Débito",
-    "HSBC 2Now",
-    "Banamex Priority",
-    "Hey Banco Crédito",
-    "Fintual",
-    "Nu Bank Débito",
-    "Plata Crédito",
-    "Invex Volaris",
-  ];
   if (type !== "from" && type !== "to") {
     throw new Error('type must be either "from" or "to"');
-  }
-  const invalidAccountName = !accountNames.includes(account);
-  if (invalidAccountName) {
-    throw new Error(`Invalid account name: ${account}`);
   }
   const mismatchSubcategoryName = {
     "Tarjeta Nu": "Nu Bank",
