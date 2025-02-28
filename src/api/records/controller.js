@@ -207,8 +207,15 @@ async function autoComplete(req, res) {
   const { googleDoc, query } = req;
   const limit = parseInt(query.limit, 10) || 10;
   const startTime = performance.now();
+  const cleanedQuery = query.name.toLowerCase().trim();
+  if (cleanedQuery.length < 3) {
+    return res.status(200).json({
+      count: 0,
+      data: [],
+    });
+  }
   const redisResult = await redisClient.ft
-    .search("idx:record", `@name:${query.name}`, {
+    .search("idx:record", `@name:${cleanedQuery}`, {
       LIMIT: {
         from: 0,
         size: 10,
@@ -271,7 +278,8 @@ async function autoComplete(req, res) {
 function storeRecordInRedis(record) {
   // eslint-disable-next-line no-unused-vars
   const { date, ...rest } = record;
-  redisClient.json.set(`record:${record.name}`, "$", rest);
+  const cleanedName = record.name.toLowerCase().trim();
+  redisClient.json.set(`record:${cleanedName}`, "$", rest);
 }
 
 module.exports = {

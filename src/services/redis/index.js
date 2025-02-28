@@ -8,7 +8,7 @@ let client;
     password: config.redisPassword,
     socket: {
       host: config.redisHost,
-      port: config.redisPort,
+      port: parseInt(config.redisPort),
     },
   });
   client.on("error", (err) => console.log("Redis Client Error", err));
